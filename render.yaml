@@ -1,29 +1,6 @@
 services:
   - type: web
-    name: insurance-clipping
-    runtime: docker
-    plan: starter
-    healthCheckPath: /healthz
-    disk:
-      name: clipping-archive
-      mountPath: /var/data
-      sizeGB: 1
-    envVars:
-      - key: DATA_DIR
-        value: /var/data
-      - key: CLIPPING_IMPORT_TOKEN
-        sync: false
-  - type: cron
-    name: insurance-clipping-daily
-    runtime: docker
-    schedule: "17 22 * * *"
-    dockerCommand: python3 scripts/collect.py
-    envVars:
-      - key: CLIPPING_IMPORT_URL
-        sync: false
-      - key: CLIPPING_IMPORT_TOKEN
-        sync: false
-      - key: NAVER_CLIENT_ID
-        sync: false
-      - key: NAVER_CLIENT_SECRET
-        sync: false
+    name: insurance-finance-clipping
+    runtime: static
+    buildCommand: bash build-static.sh
+    staticPublishPath: app-source/dist-render

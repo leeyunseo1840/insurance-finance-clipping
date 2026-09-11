@@ -1,52 +1,30 @@
-# 보험·금융·경제 클리핑
+# 보험·금융 뉴스 클리핑 — 무료 운영
 
-GA 마케터가 설계사와 고객에게 유익한 콘텐츠 소재를 찾는 뉴스 사이트입니다.
+Render Static Site + GitHub Actions로 운영합니다. 유료 서버, 데이터베이스, 디스크, Cron Job, AI API는 필요하지 않습니다.
 
-## 현재 상태
-- 화면 및 RSS 수집기 구현. 공개 배포와 정기 실행 연결은 아직 필요합니다.
-- 상단 요약·복습 일부와 검증 해설은 2026-09-09 자료에 맞춘 편집본입니다. 자동 수집만으로 이 부분까지 당일 해설로 갱신되지는 않습니다. 운영 전 데이터 기반 생성으로 바꿔야 합니다.
-- RSS 기사는 공식 발표와 별도로 대조하기 전까지 확인 필요로 표시합니다.
+## Render 설정
+- GitHub 저장소: leeyunseo1840/insurance-finance-clipping (main)
+- 서비스 종류: **Static Site**
+- Build Command: `bash build-static.sh`
+- Publish Directory: `app-source/dist-render`
+- Auto Deploy: On Commit
+- 환경변수/API 키: 기본 RSS 수집에는 필요 없음
+- 기존 Web Service는 이 설정과 별개입니다. 유료 플랜을 선택하지 마세요.
 
-## 실행
-Node.js 24와 Python 3.12를 사용합니다.
+## 매일 업데이트
+`.github/workflows/daily.yml`이 한국시간 매일 오전 07:17에 예약됩니다. GitHub 예약 실행은 지연될 수 있으며 정확한 시각을 보장하지 않습니다. Actions 탭 → Daily free clipping → Run workflow로 즉시 실행할 수도 있습니다.
 
-```sh
-npm ci
-npm run build:render
-npm run start:render
-```
+RSS 수집 → 48시간 범위 선별 → 유사 제목 클러스터링 → 중요도 정렬 → JSON 파일 저장 → GitHub 커밋 → Render 자동 배포 순서입니다. 공개 저장소의 표준 GitHub Actions 실행 환경과 Render 무료 Static Site 범위로 구성합니다. 사용량 정책은 각 서비스에서 확인하세요.
 
-사이트는 기본적으로 3000번 포트에서 실행됩니다.
+수집이 실패하면 기존 파일을 덮어쓰지 않습니다. 사이트는 마지막 성공 수집 시각을 표시합니다. 오래된 수집 시각은 오늘 날짜로 바꾸지 않습니다. `data/YYYY-MM-DD.json`은 날짜별 기록입니다. 최초 배포에는 source.tar.gz 안의 2026-09-11 수집본이 포함되어 있습니다.
 
-## 뉴스 수집
-```sh
-python scripts/collect.py
-node scripts/import-local.mjs
-```
+## 무료 요약의 범위
+유료 AI를 사용하지 않으므로 요약은 공개 피드 발췌입니다. 공식 사실 검증과 사건일·시행일 확인은 자동으로 완료되었다고 주장하지 않습니다. 검증 자료가 있는 수동 리뷰만 사실/해석/시행일을 구분해 제공합니다. 보도량은 수집된 피드 안에서만 비교합니다. 기사 원문 링크를 함께 표시하며 원문 전체는 저장하지 않습니다.
 
-공식 RSS 목록은 config/feeds.json, 검증 해설은 config/reviews.json, 과거 배경 이슈는 config/background.json에 있습니다. 수집 실패 시 이전 자료를 보존합니다.
+## 소스 수정
+소스는 `source.tar.gz`에 있습니다. 압축을 풀고 수정한 뒤 같은 구조로 다시 압축해 올립니다. `build-static.sh`는 소스를 풀고 `npm ci` 및 정적 빌드를 실행합니다. `VITE_STATIC_NEWS=true`가 빌드에 설정됩니다. 무료판은 `/api/news` 서버 대신 `/data/latest.json`을 읽습니다.
 
-## Render 배포
-Dockerfile로 Web Service를 생성합니다. DATA_DIR=/var/data로 설정하고 해당 위치에 영구 디스크를 연결해야 재시작 후 아카이브가 유지됩니다. render.yaml은 Web Service와 Cron Job 예시이며 유료 서비스가 포함됩니다.
+수집 피드: `config/feeds.json`. 검증 리뷰: `config/reviews.json`. 수집기: `scripts/collect.py`. 정적 파일 생성: `scripts/export-static.py`. 선택적 네이버 검색 API는 수집기에 NAVER_CLIENT_ID/NAVER_CLIENT_SECRET 환경변수를 전달하는 방식이며 기본 workflow에는 사용하지 않습니다. 키를 저장소에 올리지 마세요.
 
-기존 사이트를 교체할 때는 먼저 Render의 저장소 연결과 배포 설정을 확인합니다.
-
-## 환경변수
-- CLIPPING_IMPORT_TOKEN: 최소 32자 무작위 비밀값. 웹 서버와 수집 작업에 같은 값 설정.
-- CLIPPING_IMPORT_URL: 공개 사이트의 https://도메인/api/import 주소.
-- NAVER_CLIENT_ID / NAVER_CLIENT_SECRET: 선택. 네이버 개발자센터에서 검색 API를 활성화한 앱의 값. 없으면 RSS만 사용.
-- DATA_DIR: Render의 영구 디스크 경로.
-
-비밀값은 GitHub Actions Secrets 또는 Render Environment에만 저장하세요. 저장소에 올리지 않습니다.
-
-## 매일 자동 수집
-.github/workflows/daily.yml은 매일 한국시간 오전 7시 17분 실행 요청입니다. GitHub 스케줄은 지연될 수 있습니다. 저장소 기본 브랜치에 파일을 올리고 Actions를 활성화한 뒤 위 Secrets를 설정합니다. 첫 실행은 Run workflow로 확인합니다.
-
-Render Cron Job을 사용할 때도 같은 환경변수를 설정합니다. 두 스케줄러 중 하나만 사용하세요. Cron Job은 웹 서버의 디스크를 공유하지 않고 /api/import로 결과를 전달합니다.
-
-## 편집 원칙
-한국시간 수집 기준, 게시일과 사건일 구분, 핵심 사실 옆 근거 링크, 사실과 해석 분리. 미확인 정보는 추측하지 않습니다. 보험뿐 아니라 금융·경제 전반의 고객 효용을 기준으로 선정합니다.
-
-## 저장소 파일 구조
-브라우저 업로드를 위해 전체 소스가 source.tar.gz에 담겨 있습니다. 루트 Dockerfile이 소스를 풀어 설치·빌드합니다. 로컬 수정 시 압축을 풀고 작업하세요. GitHub Actions 사용 시 압축 내부 .github/workflows/daily.yml을 저장소에 별도로 등록하고 수집 전에 소스를 풀어야 합니다. Render Cron을 선택하면 Docker에서 압축이 자동 해제됩니다.
-
+## 확인
+배포 후 `/data/latest.json`의 edition.date, collectedAt 및 items를 확인하고 홈페이지 원문 링크와 날짜 필터를 확인합니다. 뉴스 수집 성공과 Render 배포 성공은 각각 Actions / Render Events에서 확인합니다.
