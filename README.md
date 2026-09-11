@@ -8,7 +8,8 @@ Render Static Site + GitHub Actions로 운영합니다. 유료 서버, 데이터
 - Build Command: `bash build-static.sh`
 - Publish Directory: `app-source/dist-render`
 - Auto Deploy: On Commit
-- 환경변수/API 키: 기본 RSS 수집에는 필요 없음
+- 환경변수: `NODE_VERSION=24.14.1` (Render Environment에 설정)
+- API 키: 기본 RSS 수집에는 필요 없음
 - 기존 Web Service는 이 설정과 별개입니다. 유료 플랜을 선택하지 마세요.
 
 ## 매일 업데이트
@@ -27,4 +28,4 @@ RSS 수집 → 48시간 범위 선별 → 유사 제목 클러스터링 → 중�
 수집 피드: `config/feeds.json`. 검증 리뷰: `config/reviews.json`. 수집기: `scripts/collect.py`. 정적 파일 생성: `scripts/export-static.py`. 선택적 네이버 검색 API는 수집기에 NAVER_CLIENT_ID/NAVER_CLIENT_SECRET 환경변수를 전달하는 방식이며 기본 workflow에는 사용하지 않습니다. 키를 저장소에 올리지 마세요.
 
 ## 확인
-배포 후 `/data/latest.json`의 edition.date, collectedAt 및 items를 확인하고 홈페이지 원문 링크와 날짜 필터를 확인합니다. 뉴스 수집 성공과 Render 배포 성공은 각각 Actions / Render Events에서 확인합니다.
+배포 후 `/data/latest.json`의 edition.date, updatedAt 및 items를 확인하고 홈페이지 원문 링크와 날짜 필터를 확인합니다. 뉴스 수집 성공과 Render 배포 성공은 각각 Actions / Render Events에서 확인합니다.
